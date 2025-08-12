@@ -1,7 +1,7 @@
 # CIS 9660 - Project Q2  
 ## Movie Mood Recommender (TMDB + OpenAI)
 
-## Streamlit App: https://movie-mood-recommender-79k33tq7gv28ewsha2rd8q.streamlit.app
+### Streamlit App: https://movie-mood-recommender-79k33tq7gv28ewsha2rd8q.streamlit.app
 ### Overview 
 This project integrates two APIs — The Movie Database (TMDB) and OpenAI — to deliver mood-based movie recommendations.  
 The app allows users to enter a mood and select a genre, then returns AI-curated suggestions with explanations.  
