@@ -62,9 +62,6 @@ p, label, .stMarkdown, .stCaption, span, small { color: var(--muted); }
   box-shadow: inset 0 0 8px rgba(255,255,255,.75), 0 8px 20px rgba(0,0,0,.05);
 }
 
-/* Section headers + spacing */
-.section-title{ margin-top:6px; }
-
 /* Movie cards */
 .movie-card{ border-radius:16px; padding:14px; border:1px solid var(--line); background: var(--panel); }
 .movie-title{ font-weight:700; font-size:1.06rem; margin:2px 0 6px; color: var(--text); }
@@ -208,7 +205,7 @@ def render_movie_card(movie, reason=None):
     title = movie.get("title") or "Untitled"
     year  = (movie.get("release_date") or "")[:4]
     rating = movie.get("vote_average"); votes = movie.get("vote_count")
-    tmdb_id = movie.get("id")
+    tmdb_id = movie.get("id") or f"noid_{title}"
 
     with st.container(border=False):
         c1, c2 = st.columns([1,2], vertical_alignment="center")
@@ -225,21 +222,31 @@ def render_movie_card(movie, reason=None):
             st.markdown(f"<div class='movie-meta'>{' '.join(chips)}</div>", unsafe_allow_html=True)
             if reason: st.markdown(f"<div class='reason'>💡 {reason}</div>", unsafe_allow_html=True)
 
+            # 🔑 unique keys so Streamlit doesn't complain
             b1,b2 = st.columns(2)
-            tmdb_link = f"https://www.themoviedb.org/movie/{tmdb_id}" if tmdb_id else None
-            trailer_key = fetch_trailer_key(tmdb_id) if tmdb_id else None
+            tmdb_link = f"https://www.themoviedb.org/movie/{movie.get('id')}" if movie.get("id") else None
+            trailer_key = fetch_trailer_key(movie.get("id")) if movie.get("id") else None
             with b1:
                 if tmdb_link:
-                    try: st.link_button("TMDB Page 🔗", tmdb_link, use_container_width=True)
-                    except: st.markdown(f"[TMDB Page 🔗]({tmdb_link})", unsafe_allow_html=True)
+                    try:
+                        st.link_button("TMDB Page 🔗", tmdb_link,
+                                       use_container_width=True, key=f"tmdb_{tmdb_id}")
+                    except:
+                        st.markdown(f"[TMDB Page 🔗]({tmdb_link})", unsafe_allow_html=True)
                 else:
-                    st.button("TMDB Page 🔗", disabled=True, use_container_width=True)
+                    st.button("TMDB Page 🔗", disabled=True, use_container_width=True,
+                              key=f"tmdb_disabled_{tmdb_id}")
             with b2:
                 if trailer_key:
-                    try: st.link_button("Trailer ▶️", f"https://www.youtube.com/watch?v={trailer_key}", use_container_width=True)
-                    except: st.markdown(f"[Trailer ▶️](https://www.youtube.com/watch?v={trailer_key})", unsafe_allow_html=True)
+                    try:
+                        st.link_button("Trailer ▶️", f"https://www.youtube.com/watch?v={trailer_key}",
+                                       use_container_width=True, key=f"trailer_{tmdb_id}")
+                    except:
+                        st.markdown(f"[Trailer ▶️](https://www.youtube.com/watch?v={trailer_key})",
+                                    unsafe_allow_html=True)
                 else:
-                    st.button("Trailer ▶️", disabled=True, use_container_width=True)
+                    st.button("Trailer ▶️", disabled=True, use_container_width=True,
+                              key=f"trailer_disabled_{tmdb_id}")
             st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------------------------
@@ -257,7 +264,7 @@ with tab1:
         genre_label = st.selectbox("Choose a base genre", list(GENRE_MAP.keys()))
         genre_id = GENRE_MAP[genre_label]
 
-    if st.button("🎬 Get Recommendations", type="primary"):
+    if st.button("🎬 Get Recommendations", type="primary", key="get_recs"):
         try:
             st.toast("🍿 Grabbing popular titles from TMDB…", icon="🍿")
             movies = fetch_movies_by_genre(genre_id=genre_id, pages=2)
@@ -298,11 +305,11 @@ with tab2:
         genre_exp_label = st.selectbox("Genre", list(GENRE_MAP.keys()), key="explorer_genre")
         genre_exp = GENRE_MAP[genre_exp_label]
     with c2:
-        pages = st.slider("Pages", 1, 5, 1, help="Each page ~20 results (sorted by popularity).")
+        pages = st.slider("Pages", 1, 5, 1, help="Each page ~20 results (sorted by popularity).", key="pages_slider")
     with c3:
-        show_posters = st.toggle("Show Posters", value=True)
+        show_posters = st.toggle("Show Posters", value=True, key="show_posters")
 
-    if st.button("📥 Load Data"):
+    if st.button("📥 Load Data", key="load_data"):
         try:
             movies = fetch_movies_by_genre(genre_exp, pages=pages)
             if not movies:
@@ -338,7 +345,6 @@ Describe your mood → pick a genre → get 5 AI-curated picks with reasons, pos
 2) OpenAI ranks them by your mood and explains why.  
 3) We match titles back to TMDB to show posters, ratings, and links.
     """)
-
 
 
 
