@@ -1,6 +1,6 @@
 # ==============================================================
 # 🎬 CIS 9660 - Project Q2
-# Movie Mood Recommender (TMDB + OpenAI) 
+# Movie Mood Recommender (TMDB + OpenAI) — Spotlight, Readable Edition
 # ==============================================================
 
 import os
@@ -20,49 +20,74 @@ st.set_page_config(page_title="🎬 Movie Mood Recommender", page_icon="🍿", l
 st.markdown(
     """
     <style>
-    /* 🎬 Fun cinema-style background */
+    /* 🎬 Subtle cinema gradient background */
     .stApp {
         background:
-          radial-gradient(circle at 20% 20%, #fff4d9, transparent 50%),
-          radial-gradient(circle at 80% 20%, #ffd6d6, transparent 50%),
-          radial-gradient(circle at 50% 80%, #d6eaff, transparent 50%),
-          #111;
+          radial-gradient(1200px 500px at 10% -10%, #fff3c2 0%, rgba(255,243,194,0) 55%),
+          radial-gradient(1200px 500px at 90% -10%, #cfe7ff 0%, rgba(207,231,255,0) 55%),
+          radial-gradient(900px 400px at 50% 110%, #ffd6d6 0%, rgba(255,214,214,0) 60%),
+          #0f1216;
         background-attachment: fixed;
+        color: #111;
     }
+
+    /* Make main content sit on a soft, readable panel */
+    .main .block-container {
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 16px;
+        padding: 28px 28px 32px 28px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    }
+
     /* Hero / spotlight styling */
     .app-hero {
-        background: radial-gradient(1200px 400px at 10% -20%, #ffe7a3 0%, rgba(255,231,163,0) 60%),
-                    radial-gradient(1200px 400px at 90% -20%, #a3d8ff 0%, rgba(163,216,255,0) 60%);
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.78) 100%),
+          radial-gradient(1200px 400px at 10% -20%, #ffe7a3 0%, rgba(255,231,163,0) 63%),
+          radial-gradient(1200px 400px at 90% -20%, #a3d8ff 0%, rgba(163,216,255,0) 63%);
         border-radius: 20px;
         padding: 24px 28px;
         border: 1px solid rgba(0,0,0,0.06);
-        margin-bottom: 16px;
-        animation: fadeIn 1.2s ease-in-out;
+        margin-bottom: 18px;
+        animation: fadeIn 0.9s ease-in-out;
     }
     .app-hero h1 {
         display:inline-block;
-        color:#fff;
-        background: rgba(0, 0, 0, 0.45);
+        color:#111;
+        background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65));
         padding: 10px 20px;
         border-radius: 12px;
         font-weight:800;
+        letter-spacing: .3px;
         text-shadow:
-            0 0 10px rgba(255,255,255,0.9),
-            0 0 20px rgba(255,255,200,0.7),
-            0 0 40px rgba(255,255,180,0.6);
+            0 2px 8px rgba(255,255,200,0.75),
+            0 0 1px rgba(255,255,255,0.8);
         box-shadow:
-            0 0 30px rgba(255, 255, 200, 0.35),
-            0 0 60px rgba(255, 255, 180, 0.25);
+            inset 0 0 8px rgba(255,255,255,0.5),
+            0 8px 24px rgba(0,0,0,0.08);
     }
-    @keyframes fadeIn { from { opacity:0; transform: translateY(-12px);} to {opacity:1; transform:none;} }
+    .app-hero p { color:#333; }
+
+    @keyframes fadeIn { from { opacity:0; transform: translateY(-10px);} to {opacity:1; transform:none;} }
+
+    /* Typography for legibility */
+    h2, h3 { color:#1b1f24; }
+    p, .stMarkdown, label, .stCaption { color:#2b3138; }
 
     /* Cards + chips */
-    .movie-card { border-radius: 18px; padding: 14px; border: 1px solid rgba(0,0,0,0.08); background: #ffffffcc; backdrop-filter: blur(6px); }
-    .movie-title { font-weight: 700; font-size: 1.05rem; margin: 2px 0 0 0; }
-    .movie-meta { font-size: 0.92rem; opacity: 0.9; }
-    .reason { font-size: 0.95rem; margin-top: 6px; }
-    .chip { display:inline-block; font-size: 0.80rem; padding: 2px 8px; margin-right: 6px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.08); background: #f7f7f7; }
-    .stButton>button { width: 100%; border-radius: 12px; }
+    .movie-card { border-radius: 16px; padding: 14px; border: 1px solid rgba(0,0,0,0.08); background: #ffffff; }
+    .movie-title { font-weight: 700; font-size: 1.05rem; margin: 2px 0 4px 0; color:#0f141a; }
+    .movie-meta { font-size: 0.92rem; opacity: 0.95; }
+    .reason { font-size: 0.95rem; margin-top: 8px; color:#1e232a; }
+    .chip { display:inline-block; font-size: 0.80rem; padding: 2px 8px; margin-right: 6px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.08); background: #f5f7fb; }
+
+    /* Buttons */
+    .stButton>button { width: 100%; border-radius: 12px; font-weight:600; }
+    .stButton>button[kind="primary"] { box-shadow: 0 6px 16px rgba(255,0,0,0.18); }
+
+    /* Dataframe tweaks */
     div[data-testid="stDataFrame"] { border-radius: 12px; overflow:hidden; }
     </style>
     """,
@@ -181,7 +206,10 @@ Example:
 # Sidebar
 # -----------------------------
 with st.sidebar:
-    st.image("https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=1200&auto=format&fit=crop", use_column_width=True)
+    st.image(
+        "https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=1200&auto=format&fit=crop",
+        use_container_width=True  # ✅ fix deprecation
+    )
     st.markdown("### 🍿 Quick Tips")
     st.caption("• Try moods like **“cozy and heartwarming”**, **“need a cathartic cry”**, **“adrenaline!”**, or **“weird and artsy”**.\n"
                "• Switch genres to tilt the vibe.\n"
@@ -238,14 +266,14 @@ def render_movie_card(movie, reason=None):
         col1, col2 = st.columns([1, 2], vertical_alignment="center")
         with col1:
             if poster:
-                st.image(poster, use_column_width=True)
+                st.image(poster, use_container_width=True)  # ✅ fix deprecation
             else:
                 st.markdown("🎬 *(No poster)*")
         with col2:
             st.markdown('<div class="movie-card">', unsafe_allow_html=True)
             st.markdown(f'<div class="movie-title">{title} {f"({year})" if year else ""}</div>', unsafe_allow_html=True)
 
-            # --- FIXED: build chips in Python (no messy escaping) ---
+            # Build chips in Python (no messy escaping)
             chips = []
             if rating is not None:
                 chips.append(f"<span class='chip'>⭐ {rating:.1f}</span>")
@@ -288,7 +316,8 @@ with tab1:
 
     colA, colB = st.columns([2, 1])
     with colA:
-        mood = st.text_input("How are you feeling? (e.g., “cozy and heartwarming”, “need an adrenaline rush”)", "cozy and heartwarming")
+        mood = st.text_input("How are you feeling? (e.g., “cozy and heartwarming”, “need an adrenaline rush”)",
+                             "cozy and heartwarming")
     with colB:
         genre_label = st.selectbox("Choose a base genre", list(GENRE_MAP.keys()))
         genre_id = GENRE_MAP[genre_label]
@@ -303,7 +332,7 @@ with tab1:
                 st.toast("🧠 Asking the AI for mood-fit picks…", icon="🧠")
                 picks = ai_rank_movies(mood, movies)
 
-                # match AI titles back to TMDB (best-effort)
+                # Match AI titles back to TMDB (best-effort)
                 matched = []
                 by_lower = {m.get("title","").lower(): m for m in movies}
                 def norm(s): return re.sub(r"[^a-z0-9 ]","", (s or "").lower())
@@ -313,7 +342,8 @@ with tab1:
                     t = (p.get("title") or "").strip()
                     m = by_lower.get(t.lower()) or norm_map.get(norm(t))
                     if not m:
-                        m = {"title": t or "Model Pick", "release_date": "", "poster_path": None, "vote_average": None, "vote_count": None, "id": None}
+                        m = {"title": t or "Model Pick", "release_date": "", "poster_path": None,
+                             "vote_average": None, "vote_count": None, "id": None}
                     matched.append((m, p.get("reason")))
 
                 cols = st.columns(2)
@@ -354,7 +384,7 @@ with tab2:
                     view_cols = ["poster"] + view_cols
                 if "release_date" in df:
                     df["release_date"] = pd.to_datetime(df["release_date"], errors="coerce").dt.date
-                st.dataframe(df[view_cols], use_container_width=True, hide_index=True)
+                st.dataframe(df[view_cols], use_container_width=True, hide_index=True)  # ✅ already good
         except Exception as e:
             st.error(f"Error loading data: {e}")
 
@@ -383,5 +413,6 @@ Describe your mood → pick a genre → get 5 AI-curated picks with reasons, pos
 - OpenAI: https://platform.openai.com/
         """
     )
+# End of file ✂️
 
 
