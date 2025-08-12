@@ -265,7 +265,7 @@ def render_movie_card(movie, reason=None):
             st.markdown('<div class="movie-card">', unsafe_allow_html=True)
             st.markdown(f'<div class="movie-title">{title} {f"({year})" if year else ""}</div>', unsafe_allow_html=True)
             st.markdown(
-                f'<div class="movie-meta">{" ".join([f"<span class=\\"chip\\">⭐ {rating:.1f}</span>" if rating else "", f"<span class=\\"chip\\">🗳️ {votes or 0} votes</span>"])} '
+                f'<div class="movie-meta">{" ".join([f"<span class=\\"chip\\">⭐ {rating:.1f}</span>" if rating else "", f"<span class=\\"chip\\">🗳️ {votes or 0} votes</span>"])} 
                 f'{f"<span class=\\"chip\\">{as_stars(rating)}</span>" if rating else ""}</div>',
                 unsafe_allow_html=True
             )
