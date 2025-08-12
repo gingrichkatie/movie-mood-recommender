@@ -1,6 +1,6 @@
 # ==============================================================
 # 🎬 CIS 9660 - Project Q2
-# Movie Mood Recommender (TMDB + OpenAI) — Spotlight, Readable Edition
+# Movie Mood Recommender (TMDB + OpenAI) 
 # ==============================================================
 
 import os
@@ -413,6 +413,6 @@ Describe your mood → pick a genre → get 5 AI-curated picks with reasons, pos
 - OpenAI: https://platform.openai.com/
         """
     )
-# End of file ✂️
+
 
 
