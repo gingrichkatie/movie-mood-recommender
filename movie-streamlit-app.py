@@ -9,7 +9,6 @@ import json
 import requests
 import pandas as pd
 import streamlit as st
-from datetime import datetime
 from openai import OpenAI
 
 # -----------------------------
@@ -20,75 +19,90 @@ st.set_page_config(page_title="🎬 Movie Mood Recommender", page_icon="🍿", l
 st.markdown(
     """
     <style>
-    /* 🎬 Subtle cinema gradient background */
+    /* ===== BACKGROUND ===== */
     .stApp {
-        background:
-          radial-gradient(1200px 500px at 10% -10%, #fff3c2 0%, rgba(255,243,194,0) 55%),
-          radial-gradient(1200px 500px at 90% -10%, #cfe7ff 0%, rgba(207,231,255,0) 55%),
-          radial-gradient(900px 400px at 50% 110%, #ffd6d6 0%, rgba(255,214,214,0) 60%),
-          #0f1216;
-        background-attachment: fixed;
-        color: #111;
+      background:
+        radial-gradient(1200px 500px at 50% 110%, rgba(255,218,170,.22) 0%, rgba(0,0,0,0) 60%),
+        linear-gradient(180deg, #0b0f14 0%, #0b0f14 100%);
+      color: #e9edf3; /* default body color for readability on dark */
     }
+    h1,h2,h3,h4 { color:#fff; letter-spacing:.2px; }
+    p,.stMarkdown,label,.stCaption,span,small { color:#e3e8ef; }
 
-    /* Make main content sit on a soft, readable panel */
-    .main .block-container {
-        background: rgba(255,255,255,0.92);
-        backdrop-filter: blur(6px);
-        border: 1px solid rgba(0,0,0,0.06);
-        border-radius: 16px;
-        padding: 28px 28px 32px 28px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.18);
-    }
-
-    /* Hero / spotlight styling */
+    /* ===== HERO WITH TITLE SPOTLIGHT ===== */
     .app-hero {
-        background:
-          linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.78) 100%),
-          radial-gradient(1200px 400px at 10% -20%, #ffe7a3 0%, rgba(255,231,163,0) 63%),
-          radial-gradient(1200px 400px at 90% -20%, #a3d8ff 0%, rgba(163,216,255,0) 63%);
-        border-radius: 20px;
-        padding: 24px 28px;
-        border: 1px solid rgba(0,0,0,0.06);
-        margin-bottom: 18px;
-        animation: fadeIn 0.9s ease-in-out;
+      position: relative;
+      border-radius: 20px;
+      padding: 24px 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.88));
+      border: 1px solid rgba(255,255,255,.6);
+      box-shadow: 0 12px 28px rgba(0,0,0,.25);
+      margin: 18px 0 14px 0;
     }
-    .app-hero h1 {
-        display:inline-block;
-        color:#111;
-        background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65));
-        padding: 10px 20px;
-        border-radius: 12px;
-        font-weight:800;
-        letter-spacing: .3px;
-        text-shadow:
-            0 2px 8px rgba(255,255,200,0.75),
-            0 0 1px rgba(255,255,255,0.8);
-        box-shadow:
-            inset 0 0 8px rgba(255,255,255,0.5),
-            0 8px 24px rgba(0,0,0,0.08);
+    /* big soft highlight BEHIND the hero card */
+    .app-hero::before{
+      content:"";
+      position:absolute; inset:-28px -28px -28px -28px; z-index:-1;
+      background:
+        radial-gradient(1000px 300px at 12% -18%, rgba(255,233,165,.9) 0%, rgba(255,233,165,0) 65%),
+        radial-gradient(1000px 300px at 88% -18%, rgba(163,216,255,.85) 0%, rgba(163,216,255,0) 65%);
+      filter: blur(2px);
+      border-radius: 28px;
     }
-    .app-hero p { color:#333; }
+    .app-hero h1{
+      display:inline-block;
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.78));
+      color:#101418;
+      padding:10px 20px;
+      border-radius:12px;
+      font-weight:800;
+      text-shadow:0 2px 8px rgba(255,255,200,.6);
+      box-shadow: inset 0 0 8px rgba(255,255,255,.65), 0 8px 24px rgba(0,0,0,.06);
+    }
+    .app-hero p{ color:#2b3138; }
 
-    @keyframes fadeIn { from { opacity:0; transform: translateY(-10px);} to {opacity:1; transform:none;} }
+    /* ===== SECTION PANELS with SPOTLIGHT BEHIND THE BOX ===== */
+    .section-panel{
+      position:relative;
+      border-radius:16px;
+      background:#ffffff;
+      color:#0f141a;
+      border:1px solid rgba(0,0,0,.06);
+      padding:18px 18px 22px 18px;
+      margin: 6px 0 20px 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    }
+    .section-panel::before{
+      content:"";
+      position:absolute; inset:-22px -22px -22px -22px; z-index:-1;
+      background:
+        radial-gradient(900px 260px at 18% -22%, rgba(255,233,165,.75) 0%, rgba(255,233,165,0) 65%),
+        radial-gradient(900px 260px at 82% -22%, rgba(163,216,255,.7) 0%, rgba(163,216,255,0) 65%);
+      border-radius:24px;
+      filter: blur(2px);
+    }
 
-    /* Typography for legibility */
-    h2, h3 { color:#1b1f24; }
-    p, .stMarkdown, label, .stCaption { color:#2b3138; }
+    /* ===== TABS / DIVIDERS ===== */
+    .stTabs [role="tab"] { color:#e6ebf2; }
+    .stTabs [role="tab"][aria-selected="true"] { color:#ffffff; }
 
-    /* Cards + chips */
-    .movie-card { border-radius: 16px; padding: 14px; border: 1px solid rgba(0,0,0,0.08); background: #ffffff; }
-    .movie-title { font-weight: 700; font-size: 1.05rem; margin: 2px 0 4px 0; color:#0f141a; }
-    .movie-meta { font-size: 0.92rem; opacity: 0.95; }
-    .reason { font-size: 0.95rem; margin-top: 8px; color:#1e232a; }
-    .chip { display:inline-block; font-size: 0.80rem; padding: 2px 8px; margin-right: 6px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.08); background: #f5f7fb; }
+    /* ===== CARDS / CHIPS ===== */
+    .movie-card { border-radius:16px; padding:14px; border:1px solid rgba(0,0,0,.08); background:#ffffff; }
+    .movie-title { font-weight:700; font-size:1.05rem; margin:2px 0 4px 0; color:#0f141a; }
+    .movie-meta { font-size:0.92rem; color:#1c232c; }
+    .reason { font-size:0.95rem; margin-top:8px; color:#1e232a; }
+    .chip { display:inline-block; font-size:0.80rem; padding:2px 8px; margin-right:6px; border-radius:999px; border:1px solid rgba(0,0,0,.08); background:#f4f7fb; color:#0f141a; }
+
+    /* Inputs light for contrast */
+    .stTextInput>div>div, .stSelectbox>div>div, .stSlider { color:#0f141a !important; }
 
     /* Buttons */
-    .stButton>button { width: 100%; border-radius: 12px; font-weight:600; }
-    .stButton>button[kind="primary"] { box-shadow: 0 6px 16px rgba(255,0,0,0.18); }
+    .stButton>button { width:100%; border-radius:12px; font-weight:600; }
+    .stButton>button[kind="primary"]{ box-shadow:0 6px 16px rgba(255,0,0,.18); }
 
-    /* Dataframe tweaks */
-    div[data-testid="stDataFrame"] { border-radius: 12px; overflow:hidden; }
+    /* Tables / images */
+    div[data-testid="stDataFrame"] { border-radius:12px; overflow:hidden; }
+    [data-testid="stSidebar"] img, .stImage img { width:100% !important; height:auto !important; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -155,13 +169,13 @@ def fetch_trailer_key(movie_id):
 # -----------------------------
 # OpenAI helpers
 # -----------------------------
-def _extract_json_block(text):
+def _extract_json_block(text: str):
     if not text:
         return None
-    fence = re.search(r"```(?:json)?\\s*([\\s\\S]*?)\\s*```", text)
+    fence = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
     if fence:
         return fence.group(1).strip()
-    bracket = re.search(r"(\\{.*\\}|\\[.*\\])", text, re.S)
+    bracket = re.search(r"(\{.*\}|\[.*\])", text, re.S)
     if bracket:
         return bracket.group(1).strip()
     return text.strip()
@@ -208,7 +222,7 @@ Example:
 with st.sidebar:
     st.image(
         "https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=1200&auto=format&fit=crop",
-        use_container_width=True  # ✅ fix deprecation
+        use_container_width=True
     )
     st.markdown("### 🍿 Quick Tips")
     st.caption("• Try moods like **“cozy and heartwarming”**, **“need a cathartic cry”**, **“adrenaline!”**, or **“weird and artsy”**.\n"
@@ -266,14 +280,14 @@ def render_movie_card(movie, reason=None):
         col1, col2 = st.columns([1, 2], vertical_alignment="center")
         with col1:
             if poster:
-                st.image(poster, use_container_width=True)  # ✅ fix deprecation
+                st.image(poster, use_container_width=True)
             else:
                 st.markdown("🎬 *(No poster)*")
         with col2:
             st.markdown('<div class="movie-card">', unsafe_allow_html=True)
             st.markdown(f'<div class="movie-title">{title} {f"({year})" if year else ""}</div>', unsafe_allow_html=True)
 
-            # Build chips in Python (no messy escaping)
+            # chips (clean + safe)
             chips = []
             if rating is not None:
                 chips.append(f"<span class='chip'>⭐ {rating:.1f}</span>")
@@ -311,6 +325,7 @@ def render_movie_card(movie, reason=None):
 # Tab 1: Recommendation Tool
 # =========================================================
 with tab1:
+    st.markdown("<div class='section-panel'>", unsafe_allow_html=True)
     st.subheader("🎯 Mood-Based Movie Recommendations")
     st.caption("Describe your mood and pick a genre. We’ll blend your vibe with what’s trending to find five gems.")
 
@@ -332,7 +347,7 @@ with tab1:
                 st.toast("🧠 Asking the AI for mood-fit picks…", icon="🧠")
                 picks = ai_rank_movies(mood, movies)
 
-                # Match AI titles back to TMDB (best-effort)
+                # best-effort title matching
                 matched = []
                 by_lower = {m.get("title","").lower(): m for m in movies}
                 def norm(s): return re.sub(r"[^a-z0-9 ]","", (s or "").lower())
@@ -353,11 +368,13 @@ with tab1:
 
         except Exception as e:
             st.error(f"Oops — something went wrong: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
 # Tab 2: Movie Data Explorer
 # =========================================================
 with tab2:
+    st.markdown("<div class='section-panel'>", unsafe_allow_html=True)
     st.subheader("🔎 Explore TMDB Movie Data")
     st.caption("Peek at the raw TMDB fields for the selected genre. Great for sanity-checks and curiosity.")
 
@@ -384,14 +401,16 @@ with tab2:
                     view_cols = ["poster"] + view_cols
                 if "release_date" in df:
                     df["release_date"] = pd.to_datetime(df["release_date"], errors="coerce").dt.date
-                st.dataframe(df[view_cols], use_container_width=True, hide_index=True)  # ✅ already good
+                st.dataframe(df[view_cols], use_container_width=True, hide_index=True)
         except Exception as e:
             st.error(f"Error loading data: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
 # Tab 3: About
 # =========================================================
 with tab3:
+    st.markdown("<div class='section-panel'>", unsafe_allow_html=True)
     st.subheader("ℹ️ About This App")
     st.markdown(
         """
@@ -413,6 +432,7 @@ Describe your mood → pick a genre → get 5 AI-curated picks with reasons, pos
 - OpenAI: https://platform.openai.com/
         """
     )
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 
